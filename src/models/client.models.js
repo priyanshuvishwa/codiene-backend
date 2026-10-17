@@ -1,9 +1,8 @@
-
 import mongoose, { Schema } from "mongoose";
 
 const clientSchema = new Schema(
   {
-    fullName: {
+    name: {
       type: String,
       required: true,
       trim: true,
@@ -27,11 +26,11 @@ const clientSchema = new Schema(
       trim: true,
     },
 
-    // status: {
-    //   type: String,
-    //   enum: ["new", "contacted", "completed"],
-    //   default: "new",
-    // },
+    status: {
+      type: String,
+      enum: ["new", "contacted", "completed"],
+      default: "new",
+    },
   },
   {
     timestamps: true,
