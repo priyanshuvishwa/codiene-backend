@@ -59,7 +59,7 @@ src/
     apierror.js      Standard API error
     apiresponse.js   Standard API response helper
   routes/
-    index.js      API routes
+    clientroutes.js      API routes
 tests/
   app.test.js     API smoke tests
 ```
