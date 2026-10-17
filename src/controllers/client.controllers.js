@@ -18,6 +18,12 @@ const createClient = asyncHandler(async (req, res) => {
     )) {
         throw new ApiError(400, 'All Fields are required');
     }
+    if( typeof name !== 'string' ||
+        typeof email !== 'string' ||
+        typeof message !== 'string'
+    ) {
+        throw new ApiError(400, 'Invalid field types');
+    }
 
     // EMAIL validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
