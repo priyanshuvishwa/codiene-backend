@@ -3,24 +3,32 @@ import 'dotenv/config';
 import cors from 'cors';
 import ApiError from './utils/apierror.js';
 import router from './routes/client.route.js';
+import helmet from 'helmet';
 
 const app = express();
 
+//cors configuration
 app.use(cors({
   origin: process.env.CORS_ORIGIN || '*',
   credentials: true,
 }));
 
+// accepting data from JSON
 app.use(express.json({
   limit: '16kb',
 }));
 
+// accepting data from form-data
 app.use(express.urlencoded({
   extended: true,
   limit: '16kb',
 }));
 
+// router for client routes
 app.use('/api/v1/clients', router);
+
+// helmet
+app.use(helmet());
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
