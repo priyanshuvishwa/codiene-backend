@@ -20,11 +20,6 @@ const clientSchema = new Schema(
       trim: true,
     },
 
-    project_brief: {
-      type: String,
-      required: false,
-    },
-
     message: {
       type: String,
       required: true,

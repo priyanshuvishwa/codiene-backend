@@ -12,17 +12,16 @@ const createClient = asyncHandler(async (req, res) => {
         throw new ApiError(400, 'Request body must be an object');
     }
 
-    const { name, email, project_brief, message } = req.body;
+    const { name, email, message } = req.body;
 
     // validate all the fields
-    if ([name, email, message ,project_brief].some(
+    if ([name, email, message ].some(
         (field) => typeof field !== 'string' || field.trim() === '',
     )) {
         throw new ApiError(400, 'All Fields are required');
     }
     if( typeof name !== 'string' ||
-        typeof email !== 'string' ||
-        typeof project_brief !== 'string' ||
+        typeof email !== 'string'||
         typeof message !== 'string'
     ) {
         throw new ApiError(400, 'Invalid field types');
@@ -81,7 +80,6 @@ const createClient = asyncHandler(async (req, res) => {
         data: client,
     });
 }); 
-
 
 
 
