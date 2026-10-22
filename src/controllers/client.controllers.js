@@ -39,6 +39,10 @@ const createClient = asyncHandler(async (req, res) => {
         message: message.trim(),
     });
 
+    console.info('[client] MongoDB insert succeeded');
+
+
+    console.info('[client] starting email delivery');
    // Send both emails
     await Promise.all([
         // Email for you
@@ -71,8 +75,10 @@ const createClient = asyncHandler(async (req, res) => {
     Regards,
     Codeine Tech
                 `,
-            }),
-        ]);
+        }),
+    ]);
+
+    console.info('[client] both emails sent');
 
     return res.status(201).json({
         success: true,
