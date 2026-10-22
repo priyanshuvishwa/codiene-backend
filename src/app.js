@@ -4,6 +4,7 @@ import cors from 'cors';
 import ApiError from './utils/apierror.js';
 import router from './routes/client.route.js';
 import helmet from 'helmet';
+import { ApiResponse } from './utils/apiresponse.js';
 
 const app = express();
 
@@ -24,11 +25,16 @@ app.use(express.urlencoded({
   limit: '16kb',
 }));
 
+// helmet
+app.use(helmet());
+
 // router for client routes
 app.use('/api/v1/clients', router);
 
-// helmet
-app.use(helmet());
+
+app.get("/", (req, res) => {
+  res.status(200).send("Backend is working!");
+});
 
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });

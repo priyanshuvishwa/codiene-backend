@@ -1,13 +1,17 @@
 # Codiene Backend
 
-A Node.js and Express API starter.
+A Node.js and Express API for collecting client contact submissions. Each
+submission is stored in MongoDB, and the server sends notification and
+confirmation emails through SMTP.
 
 ## Requirements
 
 - Node.js 20 or newer
 - npm
+- A reachable MongoDB database
+- SMTP credentials for sending emails
 
-## Getting started
+## Setup
 
 1. Install dependencies:
 
@@ -15,51 +19,96 @@ A Node.js and Express API starter.
    npm install
    ```
 
-2. Copy `.env.example` to `.env` and set `MONGODB_URI` to your MongoDB
-   connection string. For MongoDB Atlas, use the connection string provided
-   for your cluster and database user.
-3. Start the development server (MongoDB must be reachable):
+2. Create a `.env` file in the project root and configure the environment
+   variables described below. `.env` is excluded from version control.
+3. Start the development server:
 
    ```sh
    npm run dev
    ```
 
-The server connects to MongoDB before listening on port `3000` by default.
-Set `PORT` in `.env` to use a different port. The health endpoint is available
-at `GET /api/health`.
+   The server connects to MongoDB before it begins listening. If the database
+   connection fails or `MONGODB_URI` is missing, startup fails.
 
-## Client API
+## Environment variables
 
-- `POST /api/v1/clients` — submit a client using `name`, `email`, and
-  `message`.
+| Variable | Required | Default | Description |
+| --- | --- | --- | --- |
+| `PORT` | No | `8000` | HTTP port. The checked-in `.env.example` sets this to `3000`. |
+| `MONGODB_URI` | Yes | — | MongoDB connection string. |
+| `CORS_ORIGIN` | No | `*` | Origin value used by CORS. CORS credentials are enabled; configure an explicit origin for credentialed browser requests. |
+| `ZOHO_EMAIL` | For email delivery | — | SMTP username and sender/notification email address. |
+| `ZOHO_APP_PASSWORD` | For email delivery | — | SMTP account or app password. |
+| `ZOHO_SMTP_HOST` | For email delivery | — | SMTP server hostname. |
+| `ZOHO_SMTP_PORT` | No | `465` | SMTP server port. TLS is enabled when this is `465`. |
 
-Send the fields as JSON or `multipart/form-data` (Postman: **Body → form-data**).
-File uploads are not accepted.
+The server does not validate SMTP configuration at startup. Contact submissions
+are persisted before email is sent; an email delivery error can therefore
+result in an error response even though the client record was saved.
+
+## API
+
+### Create a client submission
+
+`POST /api/v1/clients`
+
+Accepts `application/json` and `multipart/form-data` with the following fields:
+
+| Field | Required | Description |
+| --- | --- | --- |
+| `name` | Yes | Client's name; must not be empty. |
+| `email` | Yes | Client's email address; must have a valid basic email format. |
+| `message` | Yes | Contact message; must not be empty. |
+
+File uploads are not accepted. The request body is limited to 16 KB for JSON
+and URL-encoded requests.
+
+On success, the endpoint responds with HTTP `201` and a JSON object containing
+`success`, `message`, and the created MongoDB client document in `data`.
+Submitted emails are trimmed and stored in lowercase.
+
+Requests are rate-limited to 15 per 15-minute window per server process.
+
+### Errors
+
+Validation errors return HTTP `400` with a JSON `error` message. Unknown routes
+return HTTP `404`:
+
+```json
+{ "error": "Not found" }
+```
+
+Unexpected server errors return HTTP `500` with a generic error message.
 
 ## Scripts
 
-- `npm run dev` — run with Node's watch mode
-- `npm start` — run the server
-- `npm test` — run the built-in Node.js test suite
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the server with Node.js watch mode. |
+| `npm start` | Start the server. |
+| `npm test` | Run the built-in Node.js test suite. |
 
-## Project layout
+## Project structure
 
 ```text
 src/
-  app.js          Express app and middleware
-  server.js       Environment setup and HTTP server
-  db/
-    connect.js    MongoDB connection
-  models/
-    client.models.js  Client document schema
+  app.js                         Express app, middleware, and error handling
+  server.js                      Database connection and HTTP server startup
   controllers/
-    client.controllers.js  Client API handlers
-  utils/
-    asyncHandler.js  Async Express handler wrapper
-    apierror.js      Standard API error
-    apiresponse.js   Standard API response helper
+    client.controllers.js        Client submission handler
+  db/
+    connect.js                   MongoDB connection
+  middleware/
+    rateLimiter.middleware.js    Contact endpoint rate limit
+  models/
+    client.models.js             Mongoose client schema
   routes/
-    clientroutes.js      API routes
+    client.route.js               Client API route
+  utils/
+    apierror.js                   API error type
+    apiresponse.js                API response helper
+    asyncHandler.js               Async Express handler wrapper
+    sendEmails.js                 SMTP email transport and sender
 tests/
-  app.test.js     API smoke tests
+  app.test.js                     API and utility tests
 ```
